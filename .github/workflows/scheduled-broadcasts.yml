@@ -1,0 +1,33 @@
+name: Scheduled broadcasts
+
+on:
+  schedule:
+    # GitHub's shortest supported interval. The worker is idempotent and
+    # lease-protected, so retries or overlapping platform ticks are safe.
+    - cron: '*/5 * * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  id-token: write
+
+concurrency:
+  group: scheduled-broadcasts
+  cancel-in-progress: false
+
+jobs:
+  drain:
+    name: Send due campaigns
+    runs-on: ubuntu-latest
+    steps:
+      - name: Run broadcast worker
+        run: |
+          TOKEN="$(curl --fail --silent --show-error \
+            --header "Authorization: bearer ${ACTIONS_ID_TOKEN_REQUEST_TOKEN}" \
+            "${ACTIONS_ID_TOKEN_REQUEST_URL}&audience=studypak-broadcast-worker" \
+            | jq --raw-output '.value')"
+          curl --fail-with-body --silent --show-error \
+            --retry 2 \
+            --max-time 110 \
+            --header "Authorization: Bearer ${TOKEN}" \
+            https://studypak.vercel.app/api/broadcasts/worker

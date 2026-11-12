@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-const h = vi.hoisted(() => ({ runQueueTick: vi.fn() }));
+const h = vi.hoisted(() => ({ runQueueTick: vi.fn(), verifyGithubActionsToken: vi.fn() }));
 
 vi.mock('@/lib/supabase/admin', () => ({
   supabaseServiceRole: () => ({ service: true }),
@@ -8,6 +8,10 @@ vi.mock('@/lib/supabase/admin', () => ({
 
 vi.mock('@/lib/whatsapp/broadcast-queue', () => ({
   runQueueTick: h.runQueueTick,
+}));
+
+vi.mock('@/lib/github-actions-oidc', () => ({
+  verifyGithubActionsToken: h.verifyGithubActionsToken,
 }));
 
 import { GET } from './route';
@@ -20,6 +24,8 @@ beforeEach(() => {
   delete process.env.CRON_SECRET;
   h.runQueueTick.mockReset();
   h.runQueueTick.mockResolvedValue([]);
+  h.verifyGithubActionsToken.mockReset();
+  h.verifyGithubActionsToken.mockResolvedValue(false);
 });
 
 afterEach(() => {
@@ -47,6 +53,17 @@ describe('GET /api/broadcasts/worker authentication', () => {
     }));
 
     expect(response.status).toBe(200);
+    expect(h.runQueueTick).toHaveBeenCalledOnce();
+  });
+
+  it('accepts a verified GitHub Actions identity token', async () => {
+    h.verifyGithubActionsToken.mockResolvedValue(true);
+    const response = await GET(new Request('http://x', {
+      headers: { authorization: 'Bearer github-oidc-token' },
+    }));
+
+    expect(response.status).toBe(200);
+    expect(h.verifyGithubActionsToken).toHaveBeenCalledWith('github-oidc-token');
     expect(h.runQueueTick).toHaveBeenCalledOnce();
   });
 

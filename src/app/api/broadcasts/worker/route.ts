@@ -17,6 +17,7 @@ import { timingSafeEqual } from 'node:crypto';
 import { NextResponse } from 'next/server';
 
 import { supabaseServiceRole } from '@/lib/supabase/admin';
+import { verifyGithubActionsToken } from '@/lib/github-actions-oidc';
 import { runQueueTick } from '@/lib/whatsapp/broadcast-queue';
 
 export const maxDuration = 120;
@@ -29,23 +30,23 @@ function secretMatches(supplied: string, expected: string | undefined): boolean 
   return got.length === want.length && timingSafeEqual(got, want);
 }
 
-export function authorized(request: Request): boolean | null {
+export async function authorized(request: Request): Promise<boolean | null> {
   const selfHostedSecret = process.env.AUTOMATION_CRON_SECRET;
   const vercelSecret = process.env.CRON_SECRET;
-  if (!selfHostedSecret && !vercelSecret) return null;
-
   const customHeader = request.headers.get('x-cron-secret') ?? '';
   const authorization = request.headers.get('authorization') ?? '';
   const bearer = authorization.startsWith('Bearer ') ? authorization.slice(7) : '';
 
-  return (
+  if (
     secretMatches(customHeader, selfHostedSecret) ||
     secretMatches(bearer, vercelSecret)
-  );
+  ) return true;
+  if (bearer && await verifyGithubActionsToken(bearer)) return true;
+  return selfHostedSecret || vercelSecret || bearer ? false : null;
 }
 
 export async function GET(request: Request) {
-  const ok = authorized(request);
+  const ok = await authorized(request);
   if (ok === null) return NextResponse.json({ error: 'cron not configured' }, { status: 503 });
   if (!ok) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
