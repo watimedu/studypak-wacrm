@@ -1,6 +1,8 @@
 name: Scheduled broadcasts
 
 on:
+  push:
+    branches: [main]
   schedule:
     # GitHub's shortest supported interval. The worker is idempotent and
     # lease-protected, so retries or overlapping platform ticks are safe.
