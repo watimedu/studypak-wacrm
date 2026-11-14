@@ -2156,7 +2156,7 @@
       "step4_2": "Click \"Edit\" on the Webhook section",
       "step4_3": "Paste the <strong class=\"text-foreground\">Webhook Callback URL</strong> from above",
       "step4_4": "Enter the same <strong class=\"text-foreground\">Verify Token</strong> you set here",
-      "step4_5": "Subscribe to \"messages\" webhook field",
+      "step4_5": "Subscribe to the \"messages\" and \"smb_message_echoes\" webhook fields (the second field syncs replies sent from the WhatsApp Business mobile app)",
       "metaDocs": "Meta WhatsApp API Documentation",
       "lastSaveFailed": "Last save failed",
       "metaErrorStep": "Step",

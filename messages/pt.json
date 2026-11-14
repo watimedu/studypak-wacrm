@@ -2156,7 +2156,7 @@
       "step4_2": "Clique em \"Editar\" na seção Webhook",
       "step4_3": "Cole a <strong class=\"text-foreground\">URL de callback do webhook</strong> acima",
       "step4_4": "Informe o mesmo <strong class=\"text-foreground\">Token de verificação</strong> definido aqui",
-      "step4_5": "Inscreva-se no campo de webhook \"messages\"",
+      "step4_5": "Assine os campos de webhook \"messages\" e \"smb_message_echoes\" (o segundo sincroniza as respostas enviadas pelo aplicativo móvel do WhatsApp Business)",
       "metaDocs": "Documentação da API do WhatsApp da Meta",
       "lastSaveFailed": "O último salvamento falhou",
       "metaErrorStep": "Etapa",
